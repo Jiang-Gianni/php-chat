@@ -2,6 +2,10 @@
 
 PHP Monolithic version of [Chat](https://github.com/Jiang-Gianni/chat?tab=readme-ov-file#demo)
 
+## Demo
+
+https://github.com/Jiang-Gianni/php-chat/assets/71674846/9e4540f6-c328-418b-9d54-371a7448866f
+
 
 ## Sqlite3
 
