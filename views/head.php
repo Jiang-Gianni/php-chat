@@ -18,7 +18,7 @@ function CommonImport() {
 </style>
 
 <script>
-    htmx.logAll()
+    // htmx.logAll()
 </script>
 
 <script>

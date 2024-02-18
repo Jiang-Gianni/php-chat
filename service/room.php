@@ -16,12 +16,12 @@ function GetRooms($db){
 
 function InsertRoom($db){
     $roomName = $_POST['room-name'];
-    $query = 'INSERT INTO room(name) VALUES (:roomName) returning id;';
+    $query = 'insert into room(name) values (:roomName);';
     $stmt = $db->prepare($query);
     $stmt->bindValue(':roomName', $roomName, SQLITE3_TEXT);
     $result = $stmt->execute();
     if (!$result) {
-        return array("error" => "Insert room failed: " . $db->lastErrorMsg());
+        return array("error" => "insert room failed: " . $db->lastErrorMsg());
     }
     $id = $db->lastInsertRowID();
     $stmt->close();

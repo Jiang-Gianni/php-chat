@@ -2,9 +2,13 @@
 function ChatPage($db){
 
     $username = GetJWT();
-    $roomId = $_GET['roomId'];
+    $roomId = $_GET['roomId']??"";
     $rooms = GetRooms($db);
     $activeRoom = null;
+    $messages = [];
+    if ($roomId != "") {
+        $messages = GetMessages($db, $roomId);
+    }
 
     ?>
 <!DOCTYPE html>
@@ -95,13 +99,15 @@ function ChatPage($db){
             <div id="new-room-error"></div>
         </article>
         <?php
-        foreach ($rooms as $room) {
-            if ($roomId == $room['id']) {
-                $activeRoom = $room;
-                echo '<article class="room bg-blue-900 outline">'.$room['name'].'</article>';
-            } else {
-                echo '<article class="room" hx-get="api.php?action=change-room&roomId='.$room['id'].'">'.$room['name'].'
-                </article>';
+        if (count($rooms) > 0) {
+            foreach ($rooms as $room) {
+                if ($roomId == $room['id']) {
+                    $activeRoom = $room;
+                    echo '<article class="room bg-blue-900 outline">'.$room['name'].'</article>';
+                } else {
+                    echo '<article class="room" hx-get="api.php?action=change-room&roomId='.$room['id'].'">'.$room['name'].'
+                    </article>';
+                }
             }
         }
         ?>
@@ -113,9 +119,13 @@ function ChatPage($db){
     <div id="chat-container">
         <h2><?php echo $activeRoom['name'] ?></h2>
         <div id="message-list">
-            {% for i := range messages %}
-            {%s= singleMessage(messages[i], messages[i].Username == username ) %}
-            {% endfor %}
+        <?php
+        if (!empty($messages) && count($messages) > 0) {
+            foreach ($messages as $message) {
+                echo MessageDiv($message, $username);
+            }
+        }
+        ?>
             <div id="new-message"></div>
         </div>
 
@@ -124,9 +134,15 @@ function ChatPage($db){
                 newMessage = document.getElementById("new-message")
                 newMessage.scrollIntoView();
             })
+            document.body.addEventListener('htmx:wsAfterMessage', function(evt) {
+                document.getElementById("<?php echo $username ?>").reset();
+            });
         </script>
-        <div hx-ext="ws" ws-connect="{%s config.ChatWsEndpoint(int(activeRoom.ID)) %}">
-            {%s= ChatInput() %}
+        <div hx-ext="ws" ws-connect="ws:localhost:8080/chat">
+            <form id="<?php echo $username ?>" ws-send>
+                <input name="message" autofocus>
+            </input>
+            </form>
         </div>
     </div>
         <?php
@@ -140,4 +156,19 @@ function ChatPage($db){
 
     <?php
 }
+
+
+function MessageDiv($message, $username) {
+    if ($message['username'] == $username) {
+        return '<div class="message justify-start flex items-center bg-cyan-700">
+        <span class="timestamp p-1">'.$message['sent_at'].'</span>
+    <strong class="username p-1">('.$message['username'].')</strong>'.$message['message'].'</div>';
+    }
+    else {
+        return '<div class="message justify-start flex items-center">
+        <span class="timestamp p-1">'.$message['sent_at'].'</span>
+    <strong class="username p-1">('.$message['username'].')</strong>'.$message['message'].'</div>';
+    }
+}
+
 ?>
